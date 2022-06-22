@@ -1,6 +1,6 @@
 package models
 
-//CÓDIGO RESPONSÁVEL PELAS AÇÕES NA NOSSA APLICAÇÃO
+//CÓDIGO RESPONSÁVEL PELAS AÇÕES NA NOSSA APLICAÇÃO EM RELAÇÃO AO BANCO DE DADOS
 import "github.com/goWebApplicationProject/db"
 
 //Struct responsável por capturar os dados dos produtos (novos e os já existentes)
