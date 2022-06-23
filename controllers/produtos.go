@@ -70,3 +70,42 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	//Redirecionando p/ a tela principal após excluir o produto
 	http.Redirect(w, r, "/", 301)
 }
+
+func Edit(w http.ResponseWriter, r *http.Request) {
+	//Pegando o id do produto que está na URL
+	idProduto := r.URL.Query().Get("id")
+
+	//Chamando a função que busca e edita o produto do banco, passando como parâmetro a var que possui o Id
+	produto := models.EditaProduto(idProduto)
+
+	//Executando o template de edição de produto passando como parâmetro a var que chama a função de edição
+	tmpl.ExecuteTemplate(w, "Edit", produto)
+}
+
+func Update(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		id := r.FormValue("id")
+		nome := r.FormValue("nome")
+		descricao := r.FormValue("descricao")
+		preco := r.FormValue("preco")
+		qtd := r.FormValue("qtd")
+
+		idConvertidaParaInt, err := strconv.Atoi(id)
+		if err != nil {
+			fmt.Println("Erro na convesão do ID para int:", err)
+		}
+
+		precoConvertidoParaFloat, err := strconv.ParseFloat(preco, 64)
+		if err != nil {
+			fmt.Println("Erro na convesão do preço para float64:", err)
+		}
+
+		quantidadeConvertidaParaInt, err := strconv.Atoi(qtd)
+		if err != nil {
+			fmt.Println("Erro na convesão da quantidade para int:", err)
+		}
+
+		models.AtualizaProduto(idConvertidaParaInt, nome, descricao, precoConvertidoParaFloat, quantidadeConvertidaParaInt)
+	}
+	http.Redirect(w, r, "/", 301)
+}
