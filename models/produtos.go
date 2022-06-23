@@ -1,6 +1,6 @@
 package models
 
-//CÓDIGO RESPONSÁVEL PELAS AÇÕES NA NOSSA APLICAÇÃO
+//CÓDIGO RESPONSÁVEL PELAS AÇÕES NA NOSSA APLICAÇÃO EM RELAÇÃO AO BANCO DE DADOS
 import "github.com/goWebApplicationProject/db"
 
 //Struct responsável por capturar os dados dos produtos (novos e os já existentes)
@@ -17,7 +17,7 @@ func BuscaTodosOsProdutos() []Produto {
 	db := db.ConectaComBancoDeDados()
 
 	//Preparando a Query para pesquisa de produtos no banco de dados
-	selectDeTodosOsProdutos, err := db.Query("select * from produtos")
+	selectDeTodosOsProdutos, err := db.Query("select * from produtos order by id asc")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -88,4 +88,57 @@ func DeletaProduto(id string) {
 
 	//Encerrando conexão com banco
 	defer db.Close()
+}
+
+//Função p/ editar um produto
+func EditaProduto(id string) Produto {
+	//Conexão com o banco
+	db := db.ConectaComBancoDeDados()
+
+	//Preparando a query
+	produtoDoBanco, error := db.Query("select * from produtos where id=$1", id)
+	if error != nil {
+		panic(error.Error())
+	}
+
+	//Armazenando uma instância da struct de Produto em uma variável
+	atualizaProduto := Produto{}
+
+	//Usando um for junto à função Next, que percorre e trás os dados de uma linha na tabela do banco
+	//Cada vez que o for é executado o Next() pega a linha seguinte
+	for produtoDoBanco.Next() {
+		var id, qtd int
+		var nome, descricao string
+		var preco float64
+
+		//Usando scan p/ armazenar os respectivos campos do banco em suas respectivas variáveis declaradas acima
+		error = produtoDoBanco.Scan(&id, &nome, &descricao, &preco, &qtd)
+		if error != nil {
+			panic(error.Error())
+		}
+
+		//Passando essas variáveis para a variável que armazena uma instância da struct Produto, armazenando cada variável em seu respectivo campo
+		atualizaProduto.Id = id
+		atualizaProduto.Nome = nome
+		atualizaProduto.Descricao = descricao
+		atualizaProduto.Qtd = qtd
+		atualizaProduto.Preco = preco
+	}
+	defer db.Close()
+
+	//Retornando a struct de produtos armazenada na variável
+	return atualizaProduto
+}
+
+func AtualizaProduto(id int, nome, descricao string, preco float64, qtd int) {
+	//Conexão com o banco
+	db := db.ConectaComBancoDeDados()
+
+	atualizandoProduto, error := db.Prepare("update produtos set nome=$1, descricao=$2, preco=$3, qtd=$4 where id=$5")
+	if error != nil {
+		panic(error.Error())
+	}
+
+	atualizandoProduto.Exec(nome, descricao, preco, qtd, id)
+	db.Close()
 }
